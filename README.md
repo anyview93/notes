@@ -1,2 +1,2 @@
-# netes
+# notes
 笔记
