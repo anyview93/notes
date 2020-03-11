@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>SSL前端调用测试</title>
+	
+</head>
+<body>
+	<div id="app">
+		<h1>GET请求：{{getData}}</h1>
+		<h1>POST请求：{{postData}}</h1>
+	</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el: '#app',
+		data: function() {
+			return {
+				getData: '',
+				postData: ''
+				}
+		},
+		methods: {
+			getInterface:function(){
+                //发送get请求
+                this.$http.get('https://172.16.34.106:20089/demo/getData').then(function(res){
+                	console.log(res);
+                	this.getData=res.bodyText; 
+                },function(){
+                    console.log('请求失败处理');
+                });
+            },
+            postInterface:function(){
+            	//发送post请求
+                this.$http.post('https://172.16.34.106:20089/demo/postData').then(function(res){
+                	console.log(res);
+                	this.postData=res.bodyText;   
+                },function(){
+                    console.log('请求失败处理');
+                });
+            }
+		},
+		mounted: function(){
+			this.getInterface();
+			this.postInterface();
+		}
+	})
+	
+</script>
+
+</html>
