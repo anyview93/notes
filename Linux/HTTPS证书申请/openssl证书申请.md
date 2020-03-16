@@ -93,7 +93,7 @@ openssl req -in server.csr -text
 openssl rsa -in server.key -out server.key
 ~~~
 
-说明：如果不删除密码，在应用加载的时候会出现输入密码进行验证的情况，不方便自动化部署。
+说明：如果不删除密码，在某些应用加载的时候会出现输入密码进行验证的情况，不方便自动化部署。
 
 这里需要输入在**1.2.1**中输入的密码
 
@@ -169,8 +169,8 @@ echo "01" > /etc/pki/CA/serial
 解决上面两个问题后，再次执行签名命令
 
 ~~~shell
-##openssl ca -keyfile ca.key -cert ca.crt -in server.csr -extfile ip.ext -days 365 -out server.crt
-openssl x509 -req -days 365 -in server.csr -CA ca.crt -CAkey ca.key -extfile ip.ext -CAcreateserial -CAserial ca.seq -sha256 -out server.crt
+##openssl ca -keyfile ca.key -cert ca.crt -in server.csr -extfile ip.ext -days 3650 -out server.crt
+openssl x509 -req -days 3650 -in server.csr -CA ca.crt -CAkey ca.key -extfile ip.ext -CAcreateserial -CAserial ca.seq -sha256 -out server.crt
 ~~~
 
 ![image-20200310102431844](.\img\sign_success.png)
@@ -242,10 +242,15 @@ keytool -importkeystore -srckeystore  server.pfx -srcstoretype pkcs12 -destkeyst
 
 ~~~text
 --module=https
+##服务器证书路径
 jetty.sslContext.keyStorePath=etc/server.jks
+##服务器信任的证书（颁发客户端的CA证书）路径
 jetty.sslContext.trustStorePath=etc/server.jks
+##服务端证书密码
 jetty.sslContext.keyStorePassword=OBF:1yf41t331z0b1z0j1t331yf2
+##服务端证书密码
 jetty.sslContext.keyManagerPassword=OBF:1yf41t331z0b1z0j1t331yf2
+####服务器信任的证书密码（颁发客户端的CA证书密码）
 jetty.sslContext.trustStorePassword=OBF:1yf41t331z0b1z0j1t331yf2
 ~~~
 
@@ -338,7 +343,7 @@ https://ip:port
 
 #### 1.6.2.服务端添加信任(服务器之间互信)
 
-**注意**：A服务器安装了SSL证书，B服务器通过`HTTS`调用A证书接口时,需要信任根证书(**ca.crt**)，下面的安装步骤中的服务器指的是B服务器（也可以所有服务器都添加根证书信任，没有影响）。
+**注意**：A服务器安装了SSL证书，B服务器通过`HTTS`调用A服务器接口时,需要信任根证书(**ca.crt**)，下面的安装步骤中的服务器指的是B服务器（也可以所有服务器都添加根证书信任）。
 
 ​			服务器上可能有多个java环境（多个jdk），在无法确认程序使用的是那个环境的情况下，最好每个java环境都把证书导入一遍（步骤相同，只需要把`$JAVA_HOME`改为改jdk的安装目录即可）。
 
@@ -471,3 +476,33 @@ https://ip:port
 - 测试结果如下：
 
 ![image-20200310173939387](.\img\html_result.png)
+
+### 1.7.双向认证
+
+#### 1.7.1.签发客户端证书
+
+​	步骤和**1.2**中颁发服务端证书步骤相同，区别在于客户端证书格式为pfx，**1.3**证书格式转换中的第一步有转换命令
+
+#### 1.7.2.导入证书
+
+​	在浏览器中导入pfx证书，中间需要输入一次密码，最后把证书导入到**个人**目录下（目前看不同程序访问都需要自己导入一遍证书）
+
+#### 1.7.3.开启服务端认证
+
+```text
+##服务端证书路径
+jetty.sslContext.keyStorePath=etc/server.jks
+##客户端信任证书（颁发证书的CA）路径
+jetty.sslContext.trustStorePath=etc/ca.jks
+##服务端证书密码
+jetty.sslContext.keyStorePassword=OBF:1yf41t331z0b1z0j1t331yf2
+##服务端证书密码
+jetty.sslContext.keyManagerPassword=OBF:1yf41t331z0b1z0j1t331yf2
+##CA证书密码
+jetty.sslContext.trustStorePassword=OBF:1uvk1uob1y0q1y101unn1uum
+
+##开启客户端认证
+jetty.sslContext.needClientAuth=true
+
+```
+
