@@ -110,6 +110,6 @@ upstream backend {
 upstream backend {
     server 10.1.0.101 weight=5;
     server 10.1.0.102 max_fails=3 fail_timeout=30s;
-    server 10.1.0.103;
+    server 10.1.0.103 backup;
  }
 ~~~
